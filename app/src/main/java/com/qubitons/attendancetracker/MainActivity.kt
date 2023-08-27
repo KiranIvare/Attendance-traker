@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
                         //LOG.info("Employee Reseponse got $employee_list")
                         if(employeeId != null) {
                             LOG.info("Employee Informion Emp Id : $employeeId UserId : $userId Password $password")
-                            val employeeInfo = EmployeeInfo(userId, employeeId, password)
+                            val employeeInfo = EmployeeInfo(userId, employeeId, password, false)
                             saveEmployeeInfoInPrefs(employeeInfo)
                             openAttendanceActivity()
                             Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()

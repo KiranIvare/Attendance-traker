@@ -11,11 +11,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.qubitons.attendancetracker.R
 import com.qubitons.attendancetracker.databinding.FragmentHomeBinding
+import com.qubitons.attendancetracker.dto.EmployeeInfo
 import java.util.logging.Logger
 
 class HomeFragment : Fragment() {
@@ -25,8 +28,6 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val LOCATION_PERMISSION_CODE = 1000
 
-    private lateinit var latitudeView: TextView
-    private lateinit var longitudeView: TextView
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
@@ -51,16 +52,23 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        latitudeView = view.findViewById<TextView>(R.id.latitude_value)
-        longitudeView = view.findViewById<TextView>(R.id.longitude_value)
+        val employeeInfo = getEmployeeInfo()!!
+
         val startTrackingButton = view.findViewById<Button>(R.id.button_start_tracking)
         val stopTrackingButton = view.findViewById<Button>(R.id.button_stop_tracking)
+
+
+        if (employeeInfo.tracking) {
+            startTrackingButton.visibility = View.GONE
+        } else {
+            stopTrackingButton.visibility   = View.GONE
+        }
+
         ///
 
         stopTrackingButton.setOnClickListener {
             LOG.info("CHECK OUT button")
             stopLocationService()
-
             // Show the "Check In" button and hide the "Check Out" button
             startTrackingButton.visibility = View.VISIBLE
             stopTrackingButton.visibility = View.GONE
@@ -69,7 +77,9 @@ class HomeFragment : Fragment() {
         fun startForegroundService() {
             if (requestLocationPermission()) {
                 // Start the LocationForegroundService
+                LOG.info("Starting foreground service for tracking")
                 val serviceIntent = Intent(requireContext(), LocationForegroundService::class.java)
+                serviceIntent.putExtra("sender","fragment")
                 ContextCompat.startForegroundService(requireContext(), serviceIntent)
             }
 
@@ -78,21 +88,22 @@ class HomeFragment : Fragment() {
             LOG.info("Button clicked")
             val permissionGranted = requestLocationPermission();
             if (permissionGranted) {
-                LOG.info("Tracking started")
+                LOG.info("Permission got for Tracking")
 
                 // Hide the "Check In" button and show the "Check Out" button
                 startTrackingButton.visibility = View.GONE
                 stopTrackingButton.visibility = View.VISIBLE
-               locationTrackingRequested = true
-                ////////////////////////////////
+                locationTrackingRequested = true
                 startForegroundService()
-                ////////////////////////////////
-                //locationTrackingRequested = true
-                //statusTextView.text = "Started"
-
-
             }
         }
+    }
+
+    private fun getEmployeeInfo(): EmployeeInfo? {
+        val info = this.activity?.getSharedPreferences("QUBITONS", AppCompatActivity.MODE_PRIVATE)
+            ?.getString("QUBTIONS_EMPLOYEE_INFO", "")
+
+        return ObjectMapper().readValue(info, EmployeeInfo::class.java)
     }
 
     private fun stopLocationService() {
