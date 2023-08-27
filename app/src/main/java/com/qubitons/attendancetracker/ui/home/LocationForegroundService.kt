@@ -5,13 +5,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.qubitons.attendancetracker.GeoLocationManager
 import com.qubitons.attendancetracker.R
+import com.qubitons.attendancetracker.dto.EmployeeInfo
 import java.util.logging.Logger
 
 class LocationForegroundService : Service() {
@@ -39,8 +43,15 @@ class LocationForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
-        locationManager.startLocationTracking(locationCallback)
+        val sender = intent?.getStringExtra("sender")
+        if(sender.equals("fragment")) {
+            startForeground(NOTIFICATION_ID, createNotification())
+            locationManager.startLocationTracking(locationCallback)
+            setTrackingTrueInPref()
+            LOG.info("Location service has been started")
+        } else {
+            LOG.info("Sender is not fragment so not starting service")
+        }
         // No need to start the service immediately upon fragment load
         // The service will be started when the "Check In" button is clicked
         return START_NOT_STICKY
@@ -49,6 +60,8 @@ class LocationForegroundService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         locationManager.stopLocationTracking(locationCallback)
+        setTrackingFalseInPref()
+        LOG.info("Location service has been stopped")
     }
 
     private fun createNotification(): Notification {
@@ -74,6 +87,36 @@ class LocationForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    private fun setTrackingTrueInPref() {
+        val employeeInfo = getEmployeeInfo();
+        employeeInfo?.tracking = true
+        if (employeeInfo != null) {
+            saveEmployeeInfoInPrefs(employeeInfo)
+        }
+    }
+
+    private fun setTrackingFalseInPref() {
+        val employeeInfo = getEmployeeInfo();
+        employeeInfo?.tracking = false
+        if (employeeInfo != null) {
+            saveEmployeeInfoInPrefs(employeeInfo)
+        }
+    }
+
+    private fun getEmployeeInfo(): EmployeeInfo? {
+        val info = this.getSharedPreferences("QUBITONS", AppCompatActivity.MODE_PRIVATE)
+            ?.getString("QUBTIONS_EMPLOYEE_INFO", "")
+
+        return ObjectMapper().readValue(info, EmployeeInfo::class.java)
+    }
+
+    private fun saveEmployeeInfoInPrefs(employeeInfo: EmployeeInfo) {
+        val mPrefs = this.getSharedPreferences("QUBITONS", AppCompatActivity.MODE_PRIVATE)
+        val prefsEditor: SharedPreferences.Editor? = mPrefs?.edit()
+        prefsEditor?.putString("QUBTIONS_EMPLOYEE_INFO", ObjectMapper().writeValueAsString(employeeInfo))
+        prefsEditor?.commit()
     }
 }
 

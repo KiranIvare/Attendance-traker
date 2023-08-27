@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.material.navigation.NavigationView
 import com.qubitons.attendancetracker.databinding.ActivityAttendanceBinding
 import com.qubitons.attendancetracker.dto.EmployeeInfo
+import com.qubitons.attendancetracker.ui.home.LocationForegroundService
 import java.util.logging.Logger
 
 class AttendanceActivity : AppCompatActivity() {
@@ -79,10 +80,16 @@ class AttendanceActivity : AppCompatActivity() {
                 startActivity(intent);
                 finish()
                 clearEmployeeInfo()
+                stopLocationService()
                 return true
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+    private fun stopLocationService() {
+        // Stop the LocationForegroundService
+        val serviceIntent = Intent(applicationContext, LocationForegroundService::class.java)
+        applicationContext.stopService(serviceIntent)
     }
 
     private fun clearEmployeeInfo() {

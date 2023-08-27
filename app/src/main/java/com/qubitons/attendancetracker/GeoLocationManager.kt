@@ -6,8 +6,12 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import java.util.logging.Logger
 
 class GeoLocationManager(context: Context) {
+
+    val LOG = Logger.getLogger(GeoLocationManager::class.java.name)
+
     private val context: Context = context
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -45,6 +49,7 @@ class GeoLocationManager(context: Context) {
     fun stopLocationTracking(locationCallback: LocationCallback) {
         if (startedLocationTracking) {
             fusedLocationClient.removeLocationUpdates(this.locationCallback)
+            LOG.info("Location updates remvoed");
         }
     }
 
