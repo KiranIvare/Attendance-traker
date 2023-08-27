@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Attendance Tracker</string>
+    <string name="nav_header_title">Qubitons</string>
+    <string name="nav_header_subtitle">user@qubitons.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Log Out</string>
+
+    <string name="menu_home">Attendance</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+
+    <string name="latitude_value">Latitude</string>
+    <string name="longitude_value">Longitude</string>
+    <!-- Strings used for fragments for navigation -->
+    <!-- TODO: Remove or change this placeholder text -->
+</resources>
