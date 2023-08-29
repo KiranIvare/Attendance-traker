@@ -56,9 +56,8 @@ class LocationForegroundService : Service() {
                         val updateData = HashMap<String, Any>()
                         updateData["current_longitude"] = location.longitude
                         updateData["current_latitude"] = location.latitude
-                        val updateArgs = updateData
                         val response = odooHttpUtils.performOdooCallAndReturnMap("object", "execute",
-                            it.userId, it.password, "hr.employee", "write", arrayOf(it.employeeId), updateArgs)
+                            it.userId, it.password, "hr.employee", "write", arrayOf(it.employeeId), updateData)
                         LOG.info("Response got from odoo server : $response")
                     }
                 }
