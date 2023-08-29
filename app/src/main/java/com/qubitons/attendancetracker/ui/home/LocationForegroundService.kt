@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.gms.location.LocationCallback
@@ -16,13 +15,22 @@ import com.google.android.gms.location.LocationResult
 import com.qubitons.attendancetracker.GeoLocationManager
 import com.qubitons.attendancetracker.R
 import com.qubitons.attendancetracker.dto.EmployeeInfo
+import com.qubitons.attendancetracker.utils.OdooHttpUtils
+import java.util.Date
 import java.util.logging.Logger
+
 
 class LocationForegroundService : Service() {
     val LOG = Logger.getLogger(LocationForegroundService::class.java.name)
 
     private val CHANNEL_ID = "LocationForegroundService"
     private val NOTIFICATION_ID = 123
+    private var lastRequestTime = Date()
+    private var odooHttpUtils : OdooHttpUtils = OdooHttpUtils()
+
+    private var employeeInfo : EmployeeInfo? = null
+
+    var prefs: SharedPreferences? = null
 
     private lateinit var locationManager: GeoLocationManager
     private val locationCallback = object : LocationCallback() {
@@ -30,8 +38,30 @@ class LocationForegroundService : Service() {
             locationResult ?: return
             for (location in locationResult.locations) {
 
-                // Handle the received location updates here
-                LOG.info("longitude: ${location.longitude} latitude: ${location.latitude}")
+
+                // Calculate time difference
+                // in milliseconds
+
+                // Calculate time difference
+                // in milliseconds
+                val currentDate = Date()
+                val differenceInTime: Long = currentDate.time - lastRequestTime.time
+                val differenceInSeconds = ((differenceInTime / 1000) % 60)
+                if(differenceInSeconds > 30) {
+                    lastRequestTime = currentDate
+                    LOG.info("longitude: ${location.longitude} latitude: ${location.latitude}")
+                    //Send event to backend for tracking employee
+
+                    employeeInfo?.let {
+                        val updateData = HashMap<String, Any>()
+                        updateData["current_longitude"] = location.longitude
+                        updateData["current_latitude"] = location.latitude
+                        val response = odooHttpUtils.performOdooCallAndReturnMap("object", "execute",
+                            it.userId, it.password, "hr.employee", "write", arrayOf(it.employeeId), updateData)
+                        LOG.info("Response got from odoo server : $response")
+                    }
+                }
+
             }
 
         }
@@ -40,6 +70,8 @@ class LocationForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         locationManager = GeoLocationManager(this)
+        prefs = getSharedPreferences("QUBITONS", MODE_PRIVATE)
+        employeeInfo = getEmployeeInfo()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -106,15 +138,13 @@ class LocationForegroundService : Service() {
     }
 
     private fun getEmployeeInfo(): EmployeeInfo? {
-        val info = this.getSharedPreferences("QUBITONS", AppCompatActivity.MODE_PRIVATE)
-            ?.getString("QUBTIONS_EMPLOYEE_INFO", "")
-
+        LOG.info("Prefs $prefs")
+        val info = prefs?.getString("QUBTIONS_EMPLOYEE_INFO", "")
         return ObjectMapper().readValue(info, EmployeeInfo::class.java)
     }
 
     private fun saveEmployeeInfoInPrefs(employeeInfo: EmployeeInfo) {
-        val mPrefs = this.getSharedPreferences("QUBITONS", AppCompatActivity.MODE_PRIVATE)
-        val prefsEditor: SharedPreferences.Editor? = mPrefs?.edit()
+        val prefsEditor: SharedPreferences.Editor? = prefs?.edit()
         prefsEditor?.putString("QUBTIONS_EMPLOYEE_INFO", ObjectMapper().writeValueAsString(employeeInfo))
         prefsEditor?.commit()
     }
