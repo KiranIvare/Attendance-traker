@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     private var odooHttpUtils : OdooHttpUtils = OdooHttpUtils()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val policy = ThreadPolicy.Builder().permitAll().build()
