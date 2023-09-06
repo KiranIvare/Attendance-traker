@@ -1,7 +1,6 @@
 package com.qubitons.attendancetracker.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.qubitons.attendancetracker.MainActivity
 import com.qubitons.attendancetracker.dto.OdooParams
 import com.qubitons.attendancetracker.dto.OdooRPCRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -14,10 +13,15 @@ import java.util.logging.Logger
 
 class OdooHttpUtils {
 
-    public var SERVER_URL: String = "https://vishvavinayakmultistate.qubitons.com/jsonrpc/"
-    public var DATABASE: String = "vishvavinayakmultistate.qubitons.com"
+    private var SERVER_URL: String = ""
+    private var DATABASE: String = ""
 
     val LOG = Logger.getLogger(OdooHttpUtils::class.java.name)
+
+    constructor(url: String, database: String) {
+        this.SERVER_URL = "$url/jsonrpc"
+        this.DATABASE = database
+    }
 
     public fun performPostOperation(urlString: String, methodString: String ,paramsAny: Any) : String? {
         return try {

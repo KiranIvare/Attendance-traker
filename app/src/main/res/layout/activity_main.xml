@@ -36,11 +36,36 @@
                 android:textColor="@color/purple"/>
 
             <EditText
+                android:id="@+id/client_code"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/custom_edittext"
+                android:drawablePadding="4dp"
+                android:hint="Client Code"
+                android:drawableLeft="@drawable/baseline_code_24"
+                android:padding="5dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/submitbtnclientcode"
+                android:textSize="18sp"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_below="@id/client_code"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/purple"
+                app:cornerRadius="20dp"
+                android:text="SUBMIT" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
                 android:id="@+id/username"
                 android:background="@drawable/custom_edittext"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="15dp"
                 android:padding="8dp"
                 android:hint="Username"
                 android:drawableLeft="@drawable/baseline_person_24"
@@ -49,10 +74,10 @@
 
             <EditText
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:id="@+id/password"
                 android:background="@drawable/custom_edittext"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="15dp"
                 android:inputType="textPassword"
                 android:padding="8dp"
                 android:hint="Password"
@@ -62,11 +87,11 @@
 
             <Button
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:text="Login"
                 android:id="@+id/loginButton"
                 android:textSize="18sp"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="10dp"
                 android:backgroundTint="@color/purple"
                 app:cornerRadius = "20dp"/>
 

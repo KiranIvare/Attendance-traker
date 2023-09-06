@@ -16,6 +16,7 @@ import com.qubitons.attendancetracker.GeoLocationManager
 import com.qubitons.attendancetracker.R
 import com.qubitons.attendancetracker.dto.EmployeeInfo
 import com.qubitons.attendancetracker.utils.OdooHttpUtils
+import com.qubitons.attendancetracker.utils.PrefUtils
 import java.util.Date
 import java.util.logging.Logger
 
@@ -26,7 +27,8 @@ class LocationForegroundService : Service() {
     private val CHANNEL_ID = "LocationForegroundService"
     private val NOTIFICATION_ID = 123
     private var lastRequestTime = Date()
-    private var odooHttpUtils : OdooHttpUtils = OdooHttpUtils()
+    private var odooHttpUtils : OdooHttpUtils? = null
+    private var prefUtils : PrefUtils? = null
 
     private var employeeInfo : EmployeeInfo? = null
 
@@ -56,7 +58,7 @@ class LocationForegroundService : Service() {
                         val updateData = HashMap<String, Any>()
                         updateData["current_longitude"] = location.longitude
                         updateData["current_latitude"] = location.latitude
-                        val response = odooHttpUtils.performOdooCallAndReturnMap("object", "execute",
+                        val response = odooHttpUtils?.performOdooCallAndReturnMap("object", "execute",
                             it.userId, it.password, "hr.employee", "write", arrayOf(it.employeeId), updateData)
                         LOG.info("Response got from odoo server : $response")
                     }
@@ -72,6 +74,9 @@ class LocationForegroundService : Service() {
         locationManager = GeoLocationManager(this)
         prefs = getSharedPreferences("QUBITONS", MODE_PRIVATE)
         employeeInfo = getEmployeeInfo()
+        prefUtils = PrefUtils()
+        val serverInfo  = prefUtils?.getServerInfo(prefs!!)!!
+        odooHttpUtils = OdooHttpUtils(serverInfo.serverURL, serverInfo.database)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
