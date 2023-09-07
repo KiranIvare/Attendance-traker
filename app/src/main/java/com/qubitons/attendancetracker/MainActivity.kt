@@ -45,10 +45,10 @@ class MainActivity : AppCompatActivity() {
         checkForopenAttendanceActivity()
         super.onCreate(savedInstanceState)
         prefUtils = PrefUtils()
-        var serverInfo = prefUtils?.getServerInfo(getSharedPreferences("QUBITONS", MODE_PRIVATE))
+   /*     var serverInfo = prefUtils?.getServerInfo(getSharedPreferences("QUBITONS", MODE_PRIVATE))
         if (serverInfo != null) {
             odooHttpUtils = OdooHttpUtils(serverInfo.serverURL, serverInfo.database)
-        }
+        }*/
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -56,8 +56,8 @@ class MainActivity : AppCompatActivity() {
         binding.submitbtnclientcode.setOnClickListener(View.OnClickListener {
             val clientCode = binding.clientCode.text.toString()
             val serverInfoTmp = serverInfo(clientCode) !!
-            if (serverInfo != null) {
-                odooHttpUtils = OdooHttpUtils(serverInfo.serverURL, serverInfo.database)
+            if (serverInfoTmp != null) {
+                odooHttpUtils = OdooHttpUtils(serverInfoTmp.serverURL, serverInfoTmp.database)
             }
             prefUtils?.setServerInfo(getSharedPreferences("QUBITONS", MODE_PRIVATE), serverInfoTmp)
         })
