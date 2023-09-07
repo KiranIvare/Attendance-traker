@@ -16,8 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.qubitons.attendancetracker.databinding.ActivityMainBinding
 import com.qubitons.attendancetracker.dto.EmployeeInfo
+import com.qubitons.attendancetracker.dto.ServerInfo
 import com.qubitons.attendancetracker.ui.home.LocationForegroundService
+import com.qubitons.attendancetracker.utils.HttpUtils
 import com.qubitons.attendancetracker.utils.OdooHttpUtils
+import com.qubitons.attendancetracker.utils.PrefUtils
 import java.util.logging.Logger
 
 
@@ -31,7 +34,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var password: EditText
     lateinit var loginButton: Button
 
-    private var odooHttpUtils : OdooHttpUtils = OdooHttpUtils()
+    private var odooHttpUtils : OdooHttpUtils? = null
+    private var prefUtils : PrefUtils? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,20 +44,35 @@ class MainActivity : AppCompatActivity() {
         StrictMode.setThreadPolicy(policy)
         checkForopenAttendanceActivity()
         super.onCreate(savedInstanceState)
+        prefUtils = PrefUtils()
+   /*     var serverInfo = prefUtils?.getServerInfo(getSharedPreferences("QUBITONS", MODE_PRIVATE))
+        if (serverInfo != null) {
+            odooHttpUtils = OdooHttpUtils(serverInfo.serverURL, serverInfo.database)
+        }*/
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.submitbtnclientcode.setOnClickListener(View.OnClickListener {
+            val clientCode = binding.clientCode.text.toString()
+            val serverInfoTmp = serverInfo(clientCode) !!
+            if (serverInfoTmp != null) {
+                odooHttpUtils = OdooHttpUtils(serverInfoTmp.serverURL, serverInfoTmp.database)
+            }
+            prefUtils?.setServerInfo(getSharedPreferences("QUBITONS", MODE_PRIVATE), serverInfoTmp)
+        })
+
         binding.loginButton.setOnClickListener(View.OnClickListener {
             Handler(Looper.getMainLooper()).post {
                     val password = binding.password.text.toString()
-                    val response = odooHttpUtils.performOdooCallAndReturnMap("common", "login", binding.username.text.toString() , binding.password.text.toString())
+                    val response = odooHttpUtils?.performOdooCallAndReturnMap("common", "login", binding.username.text.toString() , binding.password.text.toString())
                     LOG.info("Response got odoo $response")
                     val result = response?.get("result")
                     if (result !is Boolean){
                         val userId = result
                         val search_args = arrayOf(arrayOf("user_id", "=" , userId))
                         val employeeResp = userId?.let { it1 ->
-                            odooHttpUtils.performOdooCallAndReturnMap("object", "execute",
+                            odooHttpUtils?.performOdooCallAndReturnMap("object", "execute",
                                 it1, password, "hr.employee", "search_read", search_args)
                         }
                         val employeeList = employeeResp?.get("result") as List<Any>
@@ -84,6 +103,22 @@ class MainActivity : AppCompatActivity() {
             ///////////////////////////////////////////////////////////////////////////////////////////////
         })
     }
+
+    private fun serverInfo(clientCode: String) : ServerInfo? {
+        val httpUtils = HttpUtils()
+        var data : java.util.HashMap<*, *>? = httpUtils.performGetCallAndReturnMap(clientCode)
+        LOG.info("Data got for client $data")
+        val status = data?.get("status");
+        if (status != null) {
+            if(status.equals("success")) {
+                var response: HashMap<String, Int> = data?.get("message") as HashMap<String, Int>
+                return ServerInfo(
+                    response["client_url"] as String, response["client_database"] as String)
+            }
+        }
+        return null
+    }
+
 
     private fun checkForopenAttendanceActivity() {
         val mPrefs = getSharedPreferences("QUBITONS", MODE_PRIVATE)

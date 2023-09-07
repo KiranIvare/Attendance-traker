@@ -7,5 +7,5 @@ data class EmployeeInfo @JsonCreator constructor(
     @JsonProperty("userId")  val userId: Any,
     @JsonProperty("employeeId")  val employeeId: Any,
     @JsonProperty("password")  val password: String,
-    @JsonProperty("tracking") var tracking: Boolean
+    @JsonProperty("tracking") var tracking: Boolean,
 )
